@@ -1,4 +1,5 @@
 import React from 'react';
+import { APP_CONFIG } from '../config.js';
 
 const NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard', icon: '📊', active: true },
@@ -33,7 +34,7 @@ export default function Sidebar() {
       </nav>
 
       <div className="sidebar-footer">
-        <span className="muted">GVHD: Phan Trung Phát</span>
+        <span className="muted">GVHD: {APP_CONFIG.group.gvhd}</span>
         <span className="muted small">Công nghệ IoT hiện đại</span>
       </div>
     </aside>

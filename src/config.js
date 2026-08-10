@@ -7,12 +7,14 @@ export const APP_CONFIG = {
 
   // Thông tin nhóm thực hiện
   group: {
-    className: 'KHMT2024',
+    className: 'NT532',
     groupName: 'Nhóm 1',
-    gvhd: 'Phan Trung Phát',
+    gvhd: 'Lê Phạm Hoàng Trung',
     members: [
-      { mssv: '20520001', name: 'Nguyễn Văn A' },
-      { mssv: '20520002', name: 'Trần Thị B' },
+      { mssv: '23521572', name: 'Lê Quang Tiến' },
+      { mssv: '23521743', name: 'Nguyễn Quang Tùng' },
+      { mssv: '23521525', name: 'Nguyễn Minh Thông' },
+      { mssv: '24520759', name: 'Nguyễn Nhan Quốc Khang' },
     ],
   },
 

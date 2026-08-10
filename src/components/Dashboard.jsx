@@ -84,7 +84,7 @@ export default function Dashboard({ data }) {
                 ))}
               </ul>
               <div className="group-footer">
-                <span className="muted small">GVHD: {APP_CONFIG.group.gvhd || 'Phan Trung Phát'}</span>
+                <span className="muted small">GVHD: {APP_CONFIG.group.gvhd}</span>
               </div>
             </div>
           </section>
