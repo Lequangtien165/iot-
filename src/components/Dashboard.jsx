@@ -16,12 +16,20 @@ const DEFAULT_SENSOR_VALUES = {
   light: 15,
 };
 
+const MQTT_TOPICS = {
+  led1: 'mmcl/nhom2/led/n1',
+  led2: 'mmcl/nhom2/led/n2',
+  temperature: 'mmcl/nhom2/sensor/temperature',
+  humidity: 'mmcl/nhom2/sensor/humidity',
+  light: 'mmcl/nhom2/sensor/light',
+};
+
 export default function Dashboard({ data }) {
   const now = Date.now();
   const devices = data?.devices ?? [];
   const sensors = data?.sensors ?? [];
   const [leds, setLeds] = React.useState(data?.leds?.length ? data.leds : DEFAULT_LEDS);
-  const [brokerHost, setBrokerHost] = React.useState('192.168.1.xxx');
+  const [brokerHost, setBrokerHost] = React.useState('172.20.66.42');
   const [brokerPort, setBrokerPort] = React.useState('9001');
   const [brokerConnected, setBrokerConnected] = React.useState(false);
   const [connecting, setConnecting] = React.useState(false);
@@ -75,7 +83,7 @@ export default function Dashboard({ data }) {
 
     const led = leds.find((item) => item.id === id);
     const nextStatus = !(led?.status ?? false);
-    const topic = id === 1 ? 'mmcl/nhomX/led/n1' : 'mmcl/nhomX/led/n2';
+    const topic = id === 1 ? MQTT_TOPICS.led1 : MQTT_TOPICS.led2;
 
     clientRef.current.publish(topic, nextStatus ? 'ON' : 'OFF');
     updateLedState(id, nextStatus);
@@ -109,29 +117,29 @@ export default function Dashboard({ data }) {
     client.on('connect', () => {
       setBrokerConnected(true);
       setConnecting(false);
-      client.subscribe('mmcl/nhomX/sensor/temperature');
-      client.subscribe('mmcl/nhomX/sensor/humidity');
-      client.subscribe('mmcl/nhomX/sensor/light');
-      client.subscribe('mmcl/nhomX/led/n1');
-      client.subscribe('mmcl/nhomX/led/n2');
+      client.subscribe(MQTT_TOPICS.temperature);
+      client.subscribe(MQTT_TOPICS.humidity);
+      client.subscribe(MQTT_TOPICS.light);
+      client.subscribe(MQTT_TOPICS.led1);
+      client.subscribe(MQTT_TOPICS.led2);
     });
 
     client.on('message', (topic, message) => {
       const payload = message.toString();
 
-      if (topic === 'mmcl/nhomX/sensor/temperature') {
+      if (topic === MQTT_TOPICS.temperature) {
         setSensorValues((prev) => ({ ...prev, temperature: Number(payload) || prev.temperature }));
       }
-      if (topic === 'mmcl/nhomX/sensor/humidity') {
+      if (topic === MQTT_TOPICS.humidity) {
         setSensorValues((prev) => ({ ...prev, humidity: Number(payload) || prev.humidity }));
       }
-      if (topic === 'mmcl/nhomX/sensor/light') {
+      if (topic === MQTT_TOPICS.light) {
         setSensorValues((prev) => ({ ...prev, light: Number(payload) || prev.light }));
       }
-      if (topic === 'mmcl/nhomX/led/n1') {
+      if (topic === MQTT_TOPICS.led1) {
         updateLedState(1, payload.toUpperCase() === 'ON');
       }
-      if (topic === 'mmcl/nhomX/led/n2') {
+      if (topic === MQTT_TOPICS.led2) {
         updateLedState(2, payload.toUpperCase() === 'ON');
       }
     });
