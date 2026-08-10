@@ -475,6 +475,234 @@ body {
   color: var(--muted);
 }
 
+.connection-panel {
+  margin-bottom: 8px;
+}
+
+.connection-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 12px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 160px;
+}
+
+.field span {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.field input {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.primary-btn {
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  padding: 11px 18px;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status-pill.online {
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.status-pill.offline {
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.metric-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+}
+
+.metric-card.ambient .metric-icon { background: rgba(59, 130, 246, 0.15); }
+.metric-card.humidity .metric-icon { background: rgba(14, 165, 233, 0.12); }
+.metric-card.light .metric-icon { background: rgba(250, 204, 21, 0.12); }
+
+.metric-card p {
+  margin: 0 0 6px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.metric-card h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.device-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.device-name {
+  margin: 0 0 5px;
+  font-weight: 700;
+}
+
+.device-subtitle {
+  color: var(--muted);
+  font-size: 0.77rem;
+}
+
+.toggle-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 800;
+  cursor: pointer;
+  min-width: 92px;
+}
+
+.toggle-btn.on {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--green);
+  border: 1px solid rgba(34, 197, 94, 0.45);
+}
+
+.toggle-btn.off {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+/* Điều khiển LED */
+.led-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+.led-card {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.led-card.on {
+  border-color: rgba(34, 197, 94, 0.6);
+  box-shadow: inset 0 0 0 1px rgba(34, 197, 94, 0.28);
+}
+.led-card.off {
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.led-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.led-head h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+.led-indicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.04);
+}
+.led-indicator.on {
+  background: #facc15;
+  box-shadow: 0 0 18px rgba(250, 204, 21, 0.8);
+}
+.led-indicator.off {
+  background: #475569;
+}
+.led-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.led-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.led-btn:hover {
+  transform: translateY(-1px);
+}
+.led-btn.on {
+  background: rgba(34, 197, 94, 0.14);
+  color: var(--green);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+.led-btn.off {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 /* Cột phụ */
 .dash-side {
   display: flex;

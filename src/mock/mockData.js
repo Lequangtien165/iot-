@@ -25,6 +25,8 @@ const state = {
   temperature: 28.5,
   humidity: 62,
   light: 380,
+  led1: true,
+  led2: false,
 };
 
 const rand = (min, max) => min + Math.random() * (max - min);
@@ -81,6 +83,11 @@ function buildMockSnapshot() {
     },
   ];
 
+  const leds = [
+    { id: 1, name: 'Đèn LED 1', status: state.led1 },
+    { id: 2, name: 'Đèn LED 2', status: state.led2 },
+  ];
+
   const logs = sensors.flatMap((s) =>
     s.values.map((v) => ({
       id: `${s.deviceId}-${v.key}-${now}`,
@@ -94,7 +101,7 @@ function buildMockSnapshot() {
     }))
   );
 
-  return { devices, sensors, logs, fetchedAt: new Date(now).toISOString() };
+  return { devices, sensors, logs, leds, fetchedAt: new Date(now).toISOString() };
 }
 
 export default buildMockSnapshot;
