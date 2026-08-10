@@ -9,6 +9,7 @@ export const APP_CONFIG = {
   group: {
     className: 'KHMT2024',
     groupName: 'Nhóm 1',
+    gvhd: 'Phan Trung Phát',
     members: [
       { mssv: '20520001', name: 'Nguyễn Văn A' },
       { mssv: '20520002', name: 'Trần Thị B' },
