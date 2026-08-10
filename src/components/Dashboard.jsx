@@ -19,9 +19,9 @@ const DEFAULT_SENSOR_VALUES = {
 const MQTT_TOPICS = {
   led1: 'mmcl/nhom2/led/n1',
   led2: 'mmcl/nhom2/led/n2',
-  temperature: 'mmcl/nhom2/sensor/temperature',
-  humidity: 'mmcl/nhom2/sensor/humidity',
-  light: 'mmcl/nhom2/sensor/light',
+  temperature: 'mmcl/nhom2/temp',
+  humidity: 'mmcl/nhom2/humid',
+  light: 'mmcl/nhom2/lux',
 };
 
 export default function Dashboard({ data }) {
@@ -33,6 +33,8 @@ export default function Dashboard({ data }) {
   const [brokerPort, setBrokerPort] = React.useState('9001');
   const [brokerConnected, setBrokerConnected] = React.useState(false);
   const [connecting, setConnecting] = React.useState(false);
+  const [mqttStatus, setMqttStatus] = React.useState('Chưa kết nối MQTT');
+  const [publishMessage, setPublishMessage] = React.useState('Chưa có lệnh publish nào');
   const [sensorValues, setSensorValues] = React.useState(DEFAULT_SENSOR_VALUES);
   const clientRef = React.useRef(null);
 
@@ -77,6 +79,7 @@ export default function Dashboard({ data }) {
 
   const toggleLed = (id) => {
     if (!brokerConnected || !clientRef.current) {
+      setMqttStatus('MQTT chưa kết nối, cần bấm Connect trước khi điều khiển LED');
       window.alert('Vui lòng kết nối MQTT trước khi điều khiển đèn');
       return;
     }
@@ -84,9 +87,12 @@ export default function Dashboard({ data }) {
     const led = leds.find((item) => item.id === id);
     const nextStatus = !(led?.status ?? false);
     const topic = id === 1 ? MQTT_TOPICS.led1 : MQTT_TOPICS.led2;
+    const payload = nextStatus ? 'ON' : 'OFF';
 
-    clientRef.current.publish(topic, nextStatus ? 'ON' : 'OFF');
+    clientRef.current.publish(topic, payload);
     updateLedState(id, nextStatus);
+    setPublishMessage(`Đã publish ${payload} lên ${topic}`);
+    setMqttStatus(`Kết nối MQTT ổn định. Publish thành công lên ${topic}`);
   };
 
   const connectBroker = () => {
@@ -106,6 +112,7 @@ export default function Dashboard({ data }) {
     }
 
     setConnecting(true);
+    setMqttStatus(`Đang kết nối MQTT tới ${normalizedHost}:${normalizedPort}...`);
     const client = window.mqtt.connect(url, {
       clientId: `web_dashboard_${Math.random().toString(16).slice(2, 8)}`,
       clean: true,
@@ -117,6 +124,7 @@ export default function Dashboard({ data }) {
     client.on('connect', () => {
       setBrokerConnected(true);
       setConnecting(false);
+      setMqttStatus(`MQTT connected thành công tới ${normalizedHost}:${normalizedPort}`);
       client.subscribe(MQTT_TOPICS.temperature);
       client.subscribe(MQTT_TOPICS.humidity);
       client.subscribe(MQTT_TOPICS.light);
@@ -147,11 +155,13 @@ export default function Dashboard({ data }) {
     client.on('error', () => {
       setBrokerConnected(false);
       setConnecting(false);
+      setMqttStatus(`Lỗi kết nối MQTT tới ${normalizedHost}:${normalizedPort}`);
     });
 
     client.on('close', () => {
       setBrokerConnected(false);
       setConnecting(false);
+      setMqttStatus(`MQTT đã ngắt kết nối từ ${normalizedHost}:${normalizedPort}`);
     });
   };
 
@@ -200,6 +210,14 @@ export default function Dashboard({ data }) {
               <button type="button" className="primary-btn" onClick={connectBroker} disabled={connecting}>
                 {connecting ? 'Connecting...' : brokerConnected ? 'Reconnect' : 'Connect'}
               </button>
+            </div>
+
+            <div className={`status-message ${brokerConnected ? 'success' : connecting ? 'pending' : 'error'}`}>
+              {mqttStatus}
+            </div>
+
+            <div className="publish-message">
+              {publishMessage}
             </div>
           </section>
 
