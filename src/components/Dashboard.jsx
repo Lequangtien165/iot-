@@ -11,9 +11,17 @@ const DEFAULT_LEDS = [
 ];
 
 const DEFAULT_SENSOR_VALUES = {
-  temperature: 25,
-  humidity: 60,
-  light: 15,
+  temperature: null,
+  humidity: null,
+  light: null,
+};
+
+const CHART_LIMIT = 12;
+
+const SENSOR_COLORS = {
+  temperature: '#60a5fa',
+  humidity: '#34d399',
+  light: '#fbbf24',
 };
 
 const MQTT_TOPICS = {
@@ -23,6 +31,59 @@ const MQTT_TOPICS = {
   humidity: 'mmcl/nhom2/humid',
   light: 'mmcl/nhom2/lux',
 };
+
+function SensorChart({ title, unit, values, color }) {
+  const safeValues = values.filter((value) => Number.isFinite(value));
+
+  if (safeValues.length === 0) {
+    return (
+      <div className="chart-card">
+        <div className="chart-head">
+          <span>{title}</span>
+          <strong>{unit}</strong>
+        </div>
+        <div className="chart-empty">Chưa có dữ liệu</div>
+      </div>
+    );
+  }
+
+  const minValue = Math.min(...safeValues);
+  const maxValue = Math.max(...safeValues);
+  const range = maxValue - minValue || 1;
+
+  const points = safeValues
+    .map((value, index) => {
+      const x = (index / Math.max(safeValues.length - 1, 1)) * 100;
+      const y = 100 - ((value - minValue) / range) * 80 - 10;
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  return (
+    <div className="chart-card">
+      <div className="chart-head">
+        <span>{title}</span>
+        <strong>{safeValues[safeValues.length - 1]}{unit}</strong>
+      </div>
+      <svg viewBox="0 0 100 100" className="chart-svg" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={`grad-${title}`} x1="0" x2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="0.4" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+        <polyline
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          points={points}
+        />
+      </svg>
+    </div>
+  );
+}
 
 export default function Dashboard({ data }) {
   const now = Date.now();
@@ -36,6 +97,11 @@ export default function Dashboard({ data }) {
   const [mqttStatus, setMqttStatus] = React.useState('Chưa kết nối MQTT');
   const [publishMessage, setPublishMessage] = React.useState('Chưa có lệnh publish nào');
   const [sensorValues, setSensorValues] = React.useState(DEFAULT_SENSOR_VALUES);
+  const [chartHistory, setChartHistory] = React.useState({
+    temperature: [],
+    humidity: [],
+    light: [],
+  });
   const clientRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -46,20 +112,32 @@ export default function Dashboard({ data }) {
     }
   }, [data?.leds]);
 
+  const appendHistoryPoint = React.useCallback((key, value) => {
+    if (!Number.isFinite(value)) return;
+
+    setChartHistory((prev) => ({
+      ...prev,
+      [key]: [...prev[key], value].slice(-CHART_LIMIT),
+    }));
+  }, []);
+
   React.useEffect(() => {
     const next = {};
     sensors.forEach((sensor) => {
       sensor.values?.forEach((value) => {
-        if (value.key === 'temperature') next.temperature = value.value;
-        if (value.key === 'humidity') next.humidity = value.value;
-        if (value.key === 'light') next.light = value.value;
+        if (value.key === 'temperature') next.temperature = Number(value.value);
+        if (value.key === 'humidity') next.humidity = Number(value.value);
+        if (value.key === 'light') next.light = Number(value.value);
       });
     });
 
     if (Object.keys(next).length > 0) {
       setSensorValues((prev) => ({ ...prev, ...next }));
+      Object.entries(next).forEach(([key, value]) => {
+        appendHistoryPoint(key, value);
+      });
     }
-  }, [sensors]);
+  }, [appendHistoryPoint, sensors]);
 
   React.useEffect(() => () => {
     if (clientRef.current) {
@@ -134,15 +212,22 @@ export default function Dashboard({ data }) {
 
     client.on('message', (topic, message) => {
       const payload = message.toString();
+      const parsedValue = Number(payload);
 
       if (topic === MQTT_TOPICS.temperature) {
-        setSensorValues((prev) => ({ ...prev, temperature: Number(payload) || prev.temperature }));
+        const nextValue = Number.isFinite(parsedValue) ? parsedValue : null;
+        setSensorValues((prev) => ({ ...prev, temperature: nextValue }));
+        if (nextValue !== null) appendHistoryPoint('temperature', nextValue);
       }
       if (topic === MQTT_TOPICS.humidity) {
-        setSensorValues((prev) => ({ ...prev, humidity: Number(payload) || prev.humidity }));
+        const nextValue = Number.isFinite(parsedValue) ? parsedValue : null;
+        setSensorValues((prev) => ({ ...prev, humidity: nextValue }));
+        if (nextValue !== null) appendHistoryPoint('humidity', nextValue);
       }
       if (topic === MQTT_TOPICS.light) {
-        setSensorValues((prev) => ({ ...prev, light: Number(payload) || prev.light }));
+        const nextValue = Number.isFinite(parsedValue) ? parsedValue : null;
+        setSensorValues((prev) => ({ ...prev, light: nextValue }));
+        if (nextValue !== null) appendHistoryPoint('light', nextValue);
       }
       if (topic === MQTT_TOPICS.led1) {
         updateLedState(1, payload.toUpperCase() === 'ON');
@@ -232,7 +317,7 @@ export default function Dashboard({ data }) {
                 <div className="metric-icon">🌡️</div>
                 <div>
                   <p>Temperature</p>
-                  <h3>{sensorValues.temperature}°C</h3>
+                  <h3>{sensorValues.temperature ?? 'null'}°C</h3>
                 </div>
               </article>
 
@@ -240,7 +325,7 @@ export default function Dashboard({ data }) {
                 <div className="metric-icon">💧</div>
                 <div>
                   <p>Humidity</p>
-                  <h3>{sensorValues.humidity}%</h3>
+                  <h3>{sensorValues.humidity ?? 'null'}%</h3>
                 </div>
               </article>
 
@@ -248,7 +333,7 @@ export default function Dashboard({ data }) {
                 <div className="metric-icon">💡</div>
                 <div>
                   <p>Light</p>
-                  <h3>{sensorValues.light} lux</h3>
+                  <h3>{sensorValues.light ?? 'null'} lux</h3>
                 </div>
               </article>
             </div>
@@ -256,7 +341,20 @@ export default function Dashboard({ data }) {
 
           <section className="panel">
             <div className="panel-head">
-              <h3>💡 Điều khiển đèn LED</h3>
+              <h3>� Biểu đồ cảm biến</h3>
+              <span className="muted small">3 biểu đồ theo thời gian</span>
+            </div>
+
+            <div className="chart-grid">
+              <SensorChart title="Nhiệt độ" unit="°C" values={chartHistory.temperature} color={SENSOR_COLORS.temperature} />
+              <SensorChart title="Độ ẩm" unit="%" values={chartHistory.humidity} color={SENSOR_COLORS.humidity} />
+              <SensorChart title="Ánh sáng" unit=" lux" values={chartHistory.light} color={SENSOR_COLORS.light} />
+            </div>
+          </section>
+
+          <section className="panel">
+            <div className="panel-head">
+              <h3>�💡 Điều khiển đèn LED</h3>
               <span className="muted small">2 đèn vận hành qua MQTT</span>
             </div>
 

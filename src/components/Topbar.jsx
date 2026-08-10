@@ -36,10 +36,10 @@ export default function Topbar({ dataSource }) {
         </div>
 
         <span
-          className={`source-pill ${dataSource === 'api' ? 'online' : 'mock'}`}
-          title={dataSource === 'api' ? 'Đang lấy dữ liệu từ RESTful API thật' : 'Không kết nối được API, đang dùng dữ liệu mô phỏng'}
+          className={`source-pill ${dataSource === 'api' ? 'online' : 'offline'}`}
+          title={dataSource === 'api' ? 'Đang lấy dữ liệu từ RESTful API thật' : 'Chưa có dữ liệu nguồn'}
         >
-          {dataSource === 'api' ? '● RESTful API' : '◌ Dữ liệu mô phỏng'}
+          {dataSource === 'api' ? '● RESTful API' : '◌ Chưa đồng bộ'}
         </span>
       </div>
     </header>

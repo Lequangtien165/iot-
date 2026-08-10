@@ -4,7 +4,6 @@
 // đồng thời báo rõ nguồn dữ liệu trên giao diện.
 
 import { APP_CONFIG } from '../config.js';
-import buildMockSnapshot from '../mock/mockData.js';
 
 const BASE = APP_CONFIG.apiBaseUrl;
 
@@ -52,7 +51,6 @@ async function fetchJson(url) {
   }
 }
 
-// Gọi cùng lúc 3 endpoint; endpoint nào lỗi sẽ được thay bằng dữ liệu mock
 async function getDashboardSnapshot() {
   const results = await Promise.allSettled([
     fetchJson(ENDPOINTS.devices),
@@ -60,37 +58,34 @@ async function getDashboardSnapshot() {
     fetchJson(ENDPOINTS.logs),
   ]);
 
-  const mock = buildMockSnapshot();
-  const allFailed = results.every((r) => r.status === 'rejected');
-
-  if (allFailed) {
-    return { source: 'mock', error: 'Không kết nối được RESTful API, đang hiển thị dữ liệu mô phỏng.', ...mock };
-  }
-
   const devices =
     results[0].status === 'fulfilled' && Array.isArray(results[0].value)
       ? results[0].value.map(normalizeDevice)
-      : mock.devices;
+      : [];
 
   const sensorPayload = results[1].status === 'fulfilled' ? results[1].value : null;
   const sensors = Array.isArray(sensorPayload)
     ? sensorPayload
     : Array.isArray(sensorPayload?.sensors)
       ? sensorPayload.sensors
-      : mock.sensors;
+      : [];
 
   const leds = Array.isArray(sensorPayload?.leds)
     ? sensorPayload.leds.map(normalizeLed)
     : Array.isArray(sensorPayload?.lights)
       ? sensorPayload.lights.map(normalizeLed)
-      : mock.leds;
+      : [];
 
   const logs =
     results[2].status === 'fulfilled' && Array.isArray(results[2].value)
       ? results[2].value
-      : mock.logs;
+      : [];
 
-  return { source: 'api', error: null, devices, sensors, leds, logs, fetchedAt: new Date().toISOString() };
+  const error = results.some((r) => r.status === 'rejected')
+    ? 'Không thể kết nối tới API hệ thống. Vui lòng kiểm tra backend.'
+    : null;
+
+  return { source: 'api', error, devices, sensors, leds, logs, fetchedAt: new Date().toISOString() };
 }
 
 export { getDashboardSnapshot };
